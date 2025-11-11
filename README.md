@@ -43,7 +43,8 @@
 4 - End-to-end (E2E): ≤ 500 ms p95, ≤ 1 s p99
 
 
-$ Possible tools to use:
+
+# Possible tools to use:
 
 1 - Metrics: Prometheus + Grafana
 
@@ -56,7 +57,8 @@ $ Possible tools to use:
 5 - RUM / Synthetic: Synthetics (Grafana synthetic, Pingdom) + Real User Monitoring (e.g., New Relic Browser) for latency.
 
 
-$ Checklist to have realtime:
+
+# Checklist to have realtime:
 
 1 - Trace-id created by the client roam all the pipeline ?
 
