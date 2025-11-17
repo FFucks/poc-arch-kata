@@ -1,0 +1,18 @@
+Root Span:
+  HTTP POST /vote  (total ~15ms)
+  validate_user (3ms)
+  dedup_check (Redis GET user_voted) (0.8ms)
+  queue_publish (Kafka) (2.1ms)
+  http_response (0ms)
+
+Async Pipeline:
+Consumer:
+  process_vote  (total ~18ms)
+  queue_receive (Kafka) (1.1ms)
+  update_counter (Redis INCR) (0.3ms)
+  persist_event (DynamoDB/ScyllaDB write) (6ms)
+  publish_leaderboard_update (Redis/ZSet) (1ms)
+
+Read Path:
+  HTTP GET /leaderboard  (total ~3ms)
+  redis_zrange (0.7ms)
