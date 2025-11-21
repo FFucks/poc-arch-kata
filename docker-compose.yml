@@ -1,0 +1,65 @@
+version: '3.7'
+services:
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    container_name: jaeger
+    ports:
+      - "16686:16686"   # UI
+      - "14250:14250"   # gRPC (jaeger thrift/gRPC)
+      - "4317:4317"     # OTLP gRPC receiver (optional direct)
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+
+  otel-collector:
+    image: otel/opentelemetry-collector:0.91.0
+    container_name: otel-collector
+    volumes:
+      - ./otel-collector-jaeger.yaml:/etc/otel-collector-config.yaml:ro
+    command: ["--config", "/etc/otel-collector-config.yaml"]
+    ports:
+      - "4317:4317"   # OTLP/gRPC receiver
+      - "4318:4318"   # OTLP/HTTP receiver
+    depends_on:
+      - jaeger
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - "9090:9090"
+    depends_on:
+      - otel-collector
+
+  grafana:
+    image: grafana/grafana:9.0.0
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+  voting-service:
+    build:
+      context: ./voting-service
+      dockerfile: Dockerfile
+    container_name: voting-service
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_SERVICE_NAME=voting-api
+      - SPRING_PROFILES_ACTIVE=default
+    ports:
+      - "8080:8080"
+    depends_on:
+      - otel-collector
+      - jaeger
+
+volumes:
+  grafana-data:

@@ -1,0 +1,22 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+processors:
+  batch:
+
+exporters:
+  awsxray:
+    # Uses AWS SDK default chain (IAM role, env vars). No endpoint needed for public X-Ray.
+    region: ""  # optional; default will be from environment
+  logging:
+    loglevel: info
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [awsxray, logging]

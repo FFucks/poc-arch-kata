@@ -1,0 +1,18 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'otel-collector'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['otel-collector:8888'] # default metrics endpoint for collector image may vary
+
+  - job_name: 'voting-service'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['voting-service:8080']

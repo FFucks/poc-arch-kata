@@ -74,3 +74,115 @@
 
 7 - Do chaos tests cause no data loss or latency violations without failover?
 
+# Endpoints:
+
+Authentication:
+
+POST /v1/auth/token
+
+body:
+
+{
+    "username": "user-name-123",
+    "password": "123"
+}
+
+RETURN payload:
+{
+    "access_token": "SHA256-base64-token",
+}
+
+Registration:
+
+headers:
+{
+    "Authorization": Bearer <token>
+}
+
+POST /v1/auth/register
+
+body: 
+{
+    "username": "user-name-123",
+    "email": "user-email",
+    "date_of_birth": "1988-01-01"
+}
+
+Submit a vote:
+
+URI: POST /v1/vote
+
+body:
+{
+    "vote_id": "uuid-v4",
+    "user_id": "user-123",
+    "event_id": "uuid-event",
+    "client_timestamp": "2025-11-18T07:00:00Z",
+    "client_sig": "base64(...)",
+    "meta": { 
+        "device_id":"abc",
+        "app_version":"1.2.3" 
+    }
+}
+
+Leaderboard - Realtime:
+
+GET /v1/event/{event_id}/leaderboard
+
+RETURN payload:
+{
+    "event_id":"big-brother-season-2025",
+    "timestamp":"2025-11-18T07:03:12Z",
+    "top":[
+        {
+            "option_id":"contestant-1",
+            "total":123456
+        },
+        {
+            "option_id":"contestant-2",
+            "total":86754
+        },
+    ]
+}
+
+
+Verify the vote status:
+
+GET /v1/vote/status/{vote_id}
+
+RETURN payload
+{ 
+    "user_id": "user-123",
+    "vote_id": "uuid-vote", 
+    "status": "acked|processed|duplicate|rejected",
+}
+
+
+# X-ray vs Jaeger
+
+X-ray:
+    Fully managed
+    No cluster to maintain, no upgrades, no tuning.
+    Deep integration with AWS
+    Automatic service maps
+    Very simple for those who are 100% AWS
+ - Automatically instruments:
+    API Gateway
+    Lambda
+    DynamoDB
+    SQS / SNS
+    ECS / EKS
+    ALB / ELB
+
+Jaeger:
+    Open-source, CNCF standard
+    High compatibility with OpenTelemetry
+    Ideal for hybrid or self-hosted environments
+    No vendor lock-in
+    More flexible
+ - Pluggable with:
+    Grafana
+    Prometheus
+    Tempo
+    Elastic
+    Kafka
