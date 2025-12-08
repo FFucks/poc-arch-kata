@@ -109,7 +109,7 @@ Jaeger:
 ### <span style='color:#3BC143 ;font-weight: bold;'>AUTHENTICATION</span>
 method: <span style='color:#FFBE33;font-weight: bold;'>POST</span>
 path: <span style='color:#FFBE33;font-weight: bold;'>v1/auth/login</span>
-- User authentication endpoint usually used to identify the current user session and fetch user data. Response must return the userId and user token.
+- User authentication endpoint usually used to identify the current user session and fetch user data. Response must return the user_id and user token.
     1. username and password are required fields
     - request
   ```json
@@ -121,7 +121,7 @@ path: <span style='color:#FFBE33;font-weight: bold;'>v1/auth/login</span>
     - response
   ```json
   {
-    "userId" : "string",
+    "user_id" : "string",
     "token" : "string"
   }
   ```
@@ -129,48 +129,47 @@ path: <span style='color:#FFBE33;font-weight: bold;'>v1/auth/login</span>
 ### <span style='color:#3BC143 ;font-weight: bold;'>REGISTRATION</span>
 method: <span style='color:#FFBE33;font-weight: bold;'>POST</span>
 path: <span style='color:#FFBE33;font-weight: bold;'>v1/auth/register</span>
-- User registration endpoint used to create a new user in the system. Response must return the userId.
+- User registration endpoint used to create a new user in the system. Response must return the user_id.
     1. Authorization header with Bearer token is required
-    2. Fields username, email and dateOfBirth are required
+    2. Fields username, password, email and date_of_birth are required
     3. Response code success must be 201 Created
     4. Response code failure for invalid fields must be 400 Bad Request
     5. Response code failure for unauthorized must be 401 Unauthorized
-    6. Response code failure for user not found must be 404 Not Found
     - headers
   ```json
   {
-    Authorization : Bearer "string"
+    "Authorization" : "Bearer token"
   }
   ```
     - request
   ```json
   {
-    username : "string",
-    email : "string",
-    date_of_birth : "string"
+    "username" : "string",
+    "password" : "string",
+    "email" : "string",
+    "date_of_birth" : "string"
   }
   ```
     - response
   ```json
   {
-    user_id : "string"
+    "user_id" : "string"
   }
   ```
 
 ### <span style='color:#3BC143 ;font-weight: bold;'>CREATE EVENT</span>
 method: <span style='color:#FFBE33;font-weight: bold;'>POST</span>
 path: <span style='color:#FFBE33;font-weight: bold;'>v1/event/create</span>
-- Endpoint to create a new voting event. Response must return the eventId and the list of contestants created.
+- Endpoint to create a new voting event. Response must return the event_id, event_name and the list of contestants created.
     1. Authorization header with Bearer token is required
-    2. Fields user_id, event_id, contestant_id are required
-    3. Response code success must be 200 OK
+    2. Fields user_id, event_name, contestants, contestant_name, contestant_description, contestant_image_url are required
+    3. Response code success must be 201 Created
     4. Response code failure for invalid fields must be 400 Bad Request
     5. Response code failure for unauthorized must be 401 Unauthorized
-    6. Response code failure for contestant_id and/or event_id not found must be 404 Not Found
     - headers
   ```json
   {
-    Authorization : Bearer "string"
+    "Authorization" : "Bearer token"
   }
   ```
     - request
@@ -191,6 +190,7 @@ path: <span style='color:#FFBE33;font-weight: bold;'>v1/event/create</span>
   ```json
   {
     "event_id" : "string",
+    "event_name": "string",
     "contestants": [
       {
         "contestant_id": "string",
@@ -213,7 +213,7 @@ path: <span style='color:#FFBE33;font-weight: bold;'>v1/event/{event_id}/leaderb
     - headers
   ```json
   {
-    Authorization : Bearer "string"
+    "Authorization" : "Bearer token"
   }
   ```
     - response
@@ -225,7 +225,7 @@ path: <span style='color:#FFBE33;font-weight: bold;'>v1/event/{event_id}/leaderb
       {
         "contestant_id": "string",
         "contestant_name": "string",
-        "total_votes": Integer
+        "total_votes": "Integer"
       }
     ]
   }
@@ -244,7 +244,7 @@ path: <span style='color:#FFBE33;font-weight: bold;'>v1/contestants/{event_id}</
     - headers
   ```json
   {
-    Authorization : Bearer "string"
+    "Authorization" : "Bearer token"
   }
   ```
     - response
@@ -271,10 +271,11 @@ path: <span style='color:#FFBE33;font-weight: bold;'>v1/vote/submit</span>
     4. Response code failure for invalid fields must be 400 Bad Request
     5. Response code failure for unauthorized must be 401 Unauthorized
     6. Response code failure for contestant_id and/or event_id not found must be 404 Not Found
+    7. Response code failure for duplicate vote must be 409 Conflict
     - headers
   ```json
   {
-    Authorization : Bearer "string"
+    "Authorization" : "Bearer token"
   }
   ```
     - request
@@ -293,14 +294,14 @@ path: <span style='color:#FFBE33;font-weight: bold;'>v1/vote/submit</span>
     - response
   ```json
   {
-    vote_id : "string"
+    "vote_id" : "string"
   }
   ```
 
 ### <span style='color:#3BC143 ;font-weight: bold;'>VERIFY VOTE STATUS</span>
 method: <span style='color:#FFBE33;font-weight: bold;'>GET</span>
 path: <span style='color:#FFBE33;font-weight: bold;'>v1/vote/{vote_id}/status</span>
-- Endpoint to verify the status of a submitted vote. Response must return the vote_id and its current status ("acked|processed|duplicate|rejected") and the event_name.
+- Endpoint to verify the status of a submitted vote. Response must return the vote_id and its current status ("acked|processed|rejected") and the event_name.
     1. Authorization header with Bearer token is required
     2. Fields vote_id is required
     3. Response code success must be 200 OK
@@ -310,13 +311,13 @@ path: <span style='color:#FFBE33;font-weight: bold;'>v1/vote/{vote_id}/status</s
     - headers
   ```json
   {
-    Authorization : Bearer "string"
+    "Authorization" : "Bearer token"
   }
   ```
     - response
   ```json
   {
-    vote_status : "string",
-    event_name : "string"
+    "vote_status" : "string",
+    "event_name" : "string"
   }
   ```
