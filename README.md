@@ -74,89 +74,6 @@
 
 7 - Do chaos tests cause no data loss or latency violations without failover?
 
-# Endpoints:
-
-Authentication:
-
-POST /v1/auth/token
-
-body:
-
-{
-    "username": "user-name-123",
-    "password": "123"
-}
-
-RETURN payload:
-{
-    "access_token": "SHA256-base64-token",
-}
-
-Registration:
-
-headers:
-{
-    "Authorization": Bearer <token>
-}
-
-POST /v1/auth/register
-
-body: 
-{
-    "username": "user-name-123",
-    "email": "user-email",
-    "date_of_birth": "1988-01-01"
-}
-
-Submit a vote:
-
-URI: POST /v1/vote
-
-body:
-{
-    "vote_id": "uuid-v4",
-    "user_id": "user-123",
-    "event_id": "uuid-event",
-    "client_timestamp": "2025-11-18T07:00:00Z",
-    "client_sig": "base64(...)",
-    "meta": { 
-        "device_id":"abc",
-        "app_version":"1.2.3" 
-    }
-}
-
-Leaderboard - Realtime:
-
-GET /v1/event/{event_id}/leaderboard
-
-RETURN payload:
-{
-    "event_id":"big-brother-season-2025",
-    "timestamp":"2025-11-18T07:03:12Z",
-    "top":[
-        {
-            "option_id":"contestant-1",
-            "total":123456
-        },
-        {
-            "option_id":"contestant-2",
-            "total":86754
-        },
-    ]
-}
-
-
-Verify the vote status:
-
-GET /v1/vote/status/{vote_id}
-
-RETURN payload
-{ 
-    "user_id": "user-123",
-    "vote_id": "uuid-vote", 
-    "status": "acked|processed|duplicate|rejected",
-}
-
 
 # X-ray vs Jaeger
 
@@ -186,3 +103,220 @@ Jaeger:
     Tempo
     Elastic
     Kafka
+
+# Endpoints:
+
+### <span style='color:#3BC143 ;font-weight: bold;'>AUTHENTICATION</span>
+method: <span style='color:#FFBE33;font-weight: bold;'>POST</span>
+path: <span style='color:#FFBE33;font-weight: bold;'>v1/auth/login</span>
+- User authentication endpoint usually used to identify the current user session and fetch user data. Response must return the userId and user token.
+    1. username and password are required fields
+    - request
+  ```json
+  {
+    username : "string",
+    password : "string"    
+  }
+  ```
+    - response
+  ```json
+  {
+    userId : "string",
+    token : "string"
+  }
+  ```
+
+### <span style='color:#3BC143 ;font-weight: bold;'>REGISTRATION</span>
+method: <span style='color:#FFBE33;font-weight: bold;'>POST</span>
+path: <span style='color:#FFBE33;font-weight: bold;'>v1/auth/register</span>
+- User registration endpoint used to create a new user in the system. Response must return the userId.
+    1. Authorization header with Bearer token is required
+    2. Fields username, email and dateOfBirth are required
+    3. Response code success must be 201 Created
+    4. Response code failure for invalid fields must be 400 Bad Request
+    5. Response code failure for unauthorized must be 401 Unauthorized
+    6. Response code failure for user not found must be 404 Not Found
+    - headers
+  ```json
+  {
+    Authorization : Bearer "string"
+  }
+  ```
+    - request
+  ```json
+  {
+    username : "string",
+    email : "string",
+    date_of_birth : "string"
+  }
+  ```
+    - response
+  ```json
+  {
+    user_id : "string"
+  }
+  ```
+
+### <span style='color:#3BC143 ;font-weight: bold;'>CREATE EVENT</span>
+method: <span style='color:#FFBE33;font-weight: bold;'>POST</span>
+path: <span style='color:#FFBE33;font-weight: bold;'>v1/event/create</span>
+- Endpoint to create a new voting event. Response must return the eventId and the list of contestants created.
+    1. Authorization header with Bearer token is required
+    2. Fields user_id, event_id, contestant_id are required
+    3. Response code success must be 200 OK
+    4. Response code failure for invalid fields must be 400 Bad Request
+    5. Response code failure for unauthorized must be 401 Unauthorized
+    6. Response code failure for contestant_id and/or event_id not found must be 404 Not Found
+    - headers
+  ```json
+  {
+    Authorization : Bearer "string"
+  }
+  ```
+    - request
+  ```json
+  {
+    "user_id": "string",
+    "event_name": "string",
+    "contestants": [
+      {
+        "contestant_name": "string",
+        "contestant_description": "string",
+        "contestant_image_url": "string"
+      }
+    ]
+  }
+  ```
+    - response
+  ```json
+  {
+    "event_id" : "string",
+    "contestants": [
+      {
+        "contestant_id": "string",
+        "contestant_name": "string"
+      }
+    ]
+  }
+  ```
+
+### <span style='color:#3BC143 ;font-weight: bold;'>GET EVENT LEADERBOARD</span>
+method: <span style='color:#FFBE33;font-weight: bold;'>GET</span>
+path: <span style='color:#FFBE33;font-weight: bold;'>v1/event/{event_id}/leaderboard</span>
+- Endpoint to get the leaderboard of a given event. Response must return the event_id, event_name and the list of contestants with their total votes.
+    1. Authorization header with Bearer token is required
+    2. Field event_id is required
+    3. Response code success must be 200 OK
+    4. Response code failure for invalid fields must be 400 Bad Request
+    5. Response code failure for unauthorized must be 401 Unauthorized
+    6. Response code failure event_id not found must be 404 Not Found
+    - headers
+  ```json
+  {
+    Authorization : Bearer "string"
+  }
+  ```
+    - response
+  ```json
+  {
+    "event_id" : "string",
+    "event_name" : "string",
+    "contestants": [
+      {
+        "contestant_id": "string",
+        "contestant_name": "string",
+        "total_votes": Integer
+      }
+    ]
+  }
+  ```
+
+### <span style='color:#3BC143 ;font-weight: bold;'>GET CONTESTANTS LIST</span>
+method: <span style='color:#FFBE33;font-weight: bold;'>GET</span>
+path: <span style='color:#FFBE33;font-weight: bold;'>v1/contestants/{event_id}</span>
+- Endpoint to get the list of contestants for a given event. Response must return the event_id and the list of contestants.
+    1. Authorization header with Bearer token is required
+    2. Url parameter field event_id is required
+    3. Response code success must be 200 OK
+    4. Response code failure for invalid fields must be 400 Bad Request
+    5. Response code failure for unauthorized must be 401 Unauthorized
+    6. Response code failure for event_id not found must be 404 Not Found
+    - headers
+  ```json
+  {
+    Authorization : Bearer "string"
+  }
+  ```
+    - response
+  ```json
+  {
+    "event_id" : "string",
+    "contestants": [
+      {
+        "contestant_id": "string",
+        "contestant_name": "string",
+        "contestant_image_url": "string"
+      }
+    ]
+  }
+  ```
+
+### <span style='color:#3BC143 ;font-weight: bold;'>SUBMIT A VOTE</span>
+method: <span style='color:#FFBE33;font-weight: bold;'>POST</span>
+path: <span style='color:#FFBE33;font-weight: bold;'>v1/vote/submit</span>
+- Endpoint to submit a vote for a given event. Response must return the vote_id.
+    1. Authorization header with Bearer token is required
+    2. Fields user_id, event_id, contestant_id are required
+    3. Response code success must be 200 OK
+    4. Response code failure for invalid fields must be 400 Bad Request
+    5. Response code failure for unauthorized must be 401 Unauthorized
+    6. Response code failure for contestant_id and/or event_id not found must be 404 Not Found
+    - headers
+  ```json
+  {
+    Authorization : Bearer "string"
+  }
+  ```
+    - request
+  ```json
+  {
+    "user_id": "string",
+    "event_id": "string",
+    "contestant_id": "string",
+    "client_timestamp": "string",
+    "meta": {
+        "device_id": "string",
+        "app_version": "string"
+    }
+  }
+  ```
+    - response
+  ```json
+  {
+    vote_id : "string"
+  }
+  ```
+
+### <span style='color:#3BC143 ;font-weight: bold;'>VERIFY VOTE STATUS</span>
+method: <span style='color:#FFBE33;font-weight: bold;'>GET</span>
+path: <span style='color:#FFBE33;font-weight: bold;'>v1/vote/{vote_id}/status</span>
+- Endpoint to verify the status of a submitted vote. Response must return the vote_id and its current status ("acked|processed|duplicate|rejected") and the event_name.
+    1. Authorization header with Bearer token is required
+    2. Fields vote_id is required
+    3. Response code success must be 200 OK
+    4. Response code failure for invalid fields must be 400 Bad Request
+    5. Response code failure for unauthorized must be 401 Unauthorized
+    6. Response code failure for vote_id not found must be 404 Not Found
+    - headers
+  ```json
+  {
+    Authorization : Bearer "string"
+  }
+  ```
+    - response
+  ```json
+  {
+    vote_status : "string",
+    event_name : "string"
+  }
+  ```
