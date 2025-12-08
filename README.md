@@ -114,15 +114,15 @@ path: <span style='color:#FFBE33;font-weight: bold;'>v1/auth/login</span>
     - request
   ```json
   {
-    username : "string",
-    password : "string"    
+    "username" : "string",
+    "password" : "string"    
   }
   ```
     - response
   ```json
   {
-    userId : "string",
-    token : "string"
+    "userId" : "string",
+    "token" : "string"
   }
   ```
 
