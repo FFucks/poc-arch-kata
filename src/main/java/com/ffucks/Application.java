@@ -1,3 +1,5 @@
+package com.ffucks;
+
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
